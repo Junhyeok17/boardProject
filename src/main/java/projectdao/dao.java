@@ -164,26 +164,16 @@ public class dao {
 	
 	public boolean insertPost(String title, String content, String id,
 			String realfilename, String randfilename) throws SQLException {
-		String sql = "select nickname from t_member where id = ?";
-		pstmt = con.prepareStatement(sql);
-		pstmt.setString(1, id);
-		rs = pstmt.executeQuery();
-		String nickname = null;
-		if(rs.next()) {
-			nickname = rs.getString("nickname");
-		}
-		
-		sql = "insert into t_board (title, content, id, nickname, realfilename, randfilename, regdate)"
-				+ " values (?, ?, ?, ?, ?, ?, now())";
+		String sql = "insert into t_board (title, content, id, realfilename, randfilename, regdate)"
+				+ " values (?, ?, ?, ?, ?, now())";
 		
 		try {
 			pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, title);
 			pstmt.setString(2, content);
 			pstmt.setString(3, id);
-			pstmt.setString(4, nickname);
-			pstmt.setString(5, realfilename);
-			pstmt.setString(6, randfilename);
+			pstmt.setString(4, realfilename);
+			pstmt.setString(5, randfilename);
 			pstmt.executeUpdate();
 			pstmt.close();
 			return true;
@@ -195,8 +185,10 @@ public class dao {
 	}
 	
 	public postdto selectOnePost(String num){
-		String sql = "SELECT title, content, nickname, regdate, randfilename "
-				+ "FROM t_board where num = ?";
+		String sql = "SELECT b.title as title, b.content as content, "
+				+ "m.nickname as nickname, b.regdate as regdate, b.randfilename as randfilename "
+				+ "FROM t_member m, t_board b "
+				+ "where m.id=b.id and b.num = ?";
 		postdto data = new postdto();
 		try {
 			pstmt = con.prepareStatement(sql);
@@ -281,9 +273,11 @@ public class dao {
 	public ArrayList<postdto> selectAllPost(int tpage){
 		ArrayList<postdto> list = new ArrayList<>();
 		
-		String sql = "SELECT num, title, content, nickname, regdate "
-				+ "FROM t_board "
-				+ "order by regdate desc";
+		String sql = "SELECT b.num as num, b.title as title, b.content as content, "
+				+ "m.nickname as nickname, b.regdate as regdate "
+				+ "FROM t_member m, t_board b "
+				+ "where m.id = b.id "
+				+ "order by b.regdate desc";
 		try {
 			int absolutepage = (tpage-1)*counts+1;
 			pstmt = con.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE,
@@ -366,22 +360,12 @@ public class dao {
 	}
 	
 	public void insertReply(String id, String postnum, String content) throws SQLException {
-		String sql = "select nickname from t_member where id = ?";
-		pstmt = con.prepareStatement(sql);
-		pstmt.setString(1, id);
-		rs = pstmt.executeQuery();
-		String nickname = null;
-		if(rs.next()) {
-			nickname = rs.getString("nickname");
-		}
-		
-		sql = "insert into t_reply (postnum, content, id, nickname, regdate) "
-				+ "values (?,?,?,?, now())";
+		String sql = "insert into t_reply (postnum, content, id, regdate) "
+				+ "values (?,?,?, now())";
 		pstmt = con.prepareStatement(sql);
 		pstmt.setString(1, postnum);
 		pstmt.setString(2, content);
 		pstmt.setString(3, id);
-		pstmt.setString(4, nickname);
 		pstmt.executeUpdate();
 		pstmt.close();
 	}
@@ -389,9 +373,12 @@ public class dao {
 	public ArrayList<replydto> selectReply(String postnum){
 		ArrayList<replydto> list = new ArrayList<>();
 		
-		String sql = "SELECT num, postnum, content, id, nickname, regdate "
-				+ "FROM t_reply "
-				+ "WHERE postnum = ? order by regdate desc";
+		String sql = "SELECT r.num as num, r.postnum as postnum, "
+				+ "r.content as content, m.id as id, m.nickname as nickname, "
+				+ "r.regdate as regdate "
+				+ "FROM t_member m, t_reply r "
+				+ "WHERE m.id = r.id and r.postnum = ? "
+				+ "order by r.regdate desc";
 		try {
 			pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, postnum);

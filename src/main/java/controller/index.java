@@ -2,6 +2,8 @@ package controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -45,12 +47,30 @@ public class index extends HttpServlet {
 		if(id==null) id="";
 		String password = request.getParameter("userpw");
 		if(password==null) password="";
-		System.out.println(id+password);
+
+		String SALT = "dream";
+		String passwd = password + SALT;
+	
+		// 비밀번호 암호화
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA-256");
+			md.reset();
+			byte[] hashInBytes = md.digest(passwd.getBytes());
+			StringBuilder sb = new StringBuilder(); 
+			for (byte b : hashInBytes) { 
+				sb.append(String.format("%02x", b)); 
+			}
+			passwd = sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		dao mydb = new dao();
 		boolean result = false;
 		try {
-			result = mydb.selectMember(id, password);
+			result = mydb.selectMember(id, passwd);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

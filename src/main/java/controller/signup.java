@@ -2,6 +2,8 @@ package controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -39,9 +41,28 @@ public class signup extends HttpServlet {
 		    out.print("</script>");	
 		    return;
 		}
+
+		String SALT = "dream";
+		String passwd = password + SALT;
+	
+		// 비밀번호 암호화
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA-256");
+			md.reset();
+			byte[] hashInBytes = md.digest(passwd.getBytes());
+			StringBuilder sb = new StringBuilder(); 
+			for (byte b : hashInBytes) { 
+				sb.append(String.format("%02x", b)); 
+			}
+			passwd = sb.toString();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		dao mydb = new dao();
-		mydb.insertMember(id, nickname, email, password);
+		mydb.insertMember(id, nickname, email, passwd);
 		mydb.Close();
 		
 		PrintWriter out = response.getWriter();

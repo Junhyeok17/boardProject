@@ -1,0 +1,36 @@
+CREATE DATABASE project;
+
+USE project;
+
+DROP TABLE t_member;
+CREATE table t_member(
+	id VARCHAR(100) PRIMARY key,
+	nickname VARCHAR(100),
+	email VARCHAR(100),
+	PASSWORD VARCHAR(100)
+);
+
+DROP TABLE t_board;
+CREATE TABLE t_board(
+	num INT(5) AUTO_INCREMENT,
+	title VARCHAR(50),
+	content VARCHAR(1000),
+	id VARCHAR(100),
+	realfilename VARCHAR(100),
+	randfilename VARCHAR(100),
+	regdate DATETIME DEFAULT NOW(),
+	PRIMARY KEY (num, id),
+	FOREIGN KEY (id) REFERENCES t_member(id) ON DELETE cascade
+);
+
+DROP TABLE t_reply;
+CREATE TABLE t_reply (
+	num INT(5) AUTO_INCREMENT,
+	postnum INT(5),
+	content VARCHAR(1000),
+	id VARCHAR(100),
+	regdate DATETIME DEFAULT NOW(),
+	PRIMARY KEY (num, id),
+	FOREIGN KEY (id) REFERENCES t_member(id) ON DELETE cascade
+);
+
